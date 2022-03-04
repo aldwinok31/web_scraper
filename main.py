@@ -32,7 +32,7 @@ class Activity:
         self.array_max = len(array)
         self.scroll_to(array[self.array_current])
         array[self.array_current].click()
-        getHrefs(self.driver,self.get_a)
+        getHrefs(self.driver,self.get_a,self)
 
     def back(self):
         self.driver.execute_script("window.history.go(-1)")
@@ -42,23 +42,24 @@ class Activity:
 
     def get_a(self,_array):
         self.array_current = self.array_current + 1
+
         if(self.array_current == self.array_max):
-            #self.write_to_excel_hrefs()
-            #self.driver.get("https://www.lasvegasmarket.com/exhibitor/90910'")
-            #time.sleep(10)
+            self.array_href += _array
+            self.write_to_excel_hrefs()
+            print("HREFS wrote")
             view_link(self.array_href,self,self.driver)
-            #print(self.array_full_data)
-            print(self.array_full_data)
             self.write_to_excel_datas()
+            print("Whole Data wrote")
         else:
             self.array_href += _array
             self.back()
-            WebDriverWait(self.driver,10).until(EC.presence_of_element_located((By.CLASS_NAME,"imc-campus-view--floor-name")))
+            WebDriverWait(self.driver,20).until(EC.presence_of_element_located((By.CLASS_NAME,"imc-campus-view--floor-name")))
             self.start()
+
 
     ## WRITE TO FULL DATA
     def write_to_excel_datas(self):
-        workbook = xlsxwriter.Workbook("competitors_data.xlsx")
+        workbook = xlsxwriter.Workbook("competitors_data_filtered.xlsx")
         worksheet = workbook.add_worksheet("Comp")
         row = 0
         col = 0
@@ -88,7 +89,7 @@ class Activity:
 
 
     def write_to_excel_hrefs(self):
-        workbook = xlsxwriter.Workbook("competitors.xlsx")
+        workbook = xlsxwriter.Workbook("possible_competitors_href.xlsx")
         worksheet = workbook.add_worksheet("Comp")
         row = 0
         col = 0

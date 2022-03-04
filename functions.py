@@ -11,13 +11,14 @@ def searchElement(driver,callback):
     for element in a:
         _el = element.find_elements(By.CLASS_NAME,"imc-campus-view-link")[0]
         #or _el.get_attribute('innerText') == "Furniture | Bedding"
+        #_el.get_attribute('innerText') == "Bedding"
         if(_el.get_attribute('innerText') == "Bedding"  or _el.get_attribute('innerText') == "Furniture | Bedding" ):
             _filtered_array.append(_el)
 
     callback(_filtered_array)
 
 
-def getHrefs(driver,callback):
+def getHrefs(driver,callback,context):
     try:
         WebDriverWait(driver,20).until(EC.presence_of_element_located((By.CLASS_NAME,"imc-type--title-5-link")))
         a = driver.find_elements(By.CLASS_NAME,"imc-type--title-5-link")
@@ -74,7 +75,7 @@ def view_link(array_href,context,driver):
                 pass
 
             try:
-                WebDriverWait(driver,5).until(EC.presence_of_element_located((By.CLASS_NAME,"imc-button--primary-inverted")))
+                WebDriverWait(driver,3).until(EC.presence_of_element_located((By.CLASS_NAME,"imc-button--primary-inverted")))
                 if len(driver.find_elements(By.CLASS_NAME,"imc-button--primary-inverted")) > 0:
                     link_button = driver.find_elements(By.CLASS_NAME,"imc-button--primary-inverted")
                     site_link = link_button[0].get_attribute("href")
