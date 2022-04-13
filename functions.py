@@ -3,6 +3,8 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from pprint import pprint
+from selenium.webdriver.common.keys import Keys
+
 import time
 
 #### FOR LAS VEGAS MARKET
@@ -263,3 +265,60 @@ def filter_HPM(driver,context,_arr):
         time.sleep(2)
 
     return newarr
+
+##### Customatic Parts
+
+
+def set_login_site(driver,context,callback):
+    #Set Credentials for customatic parts
+    user = "Aldwin"
+    passw = "CodeMonkey1!"
+
+    #Find User and Password Input
+    username = driver.find_element_by_id("user")
+    username.send_keys(user)
+
+    password = driver.find_element_by_id("pass")
+    password.send_keys(passw)
+
+    password.send_keys(Keys.ENTER)
+    time.sleep(5)
+    pages = find_all_page_href(driver,context)
+    callback(pages)
+
+def find_all_page_href(driver,context):
+    # Get All pagination hrefs into array
+    driver.get("http://localhost:8080/troubleshoot/servicePages/index.php?x=0&y=0&search=&show=0&page=1")
+    time.sleep(2)
+
+    page_array = driver.find_elements(By.CLASS_NAME,"pagination")
+    pages = []
+    for page in page_array:
+        href = page.get_attribute("href")
+        pages.append(href)
+
+    return pages
+
+def process_missing_links(driver,context,pages,callback):
+    # Get All Parts with missing Image links
+    parts = []
+    for page in pages:
+        driver.get(page)
+        WebDriverWait(driver,20).until(EC.presence_of_element_located((By.CLASS_NAME,"c-image")))
+
+        imagenotavail = 'http://localhost:8080/troubleshoot/images/imagenotavailable.png'
+        time.sleep(3)
+        imagesrc = driver.find_elements(By.CLASS_NAME,"c-image")
+
+        #parts with no image
+        for image in imagesrc:
+
+            context.scroll_to(image)
+            if(image.get_attribute("src") == imagenotavail ):
+                p = image.find_elements(By.XPATH,"./../../p")
+                a = image.find_elements(By.XPATH,"./../../../a")
+
+                part = {"name":p[0].get_attribute("innerText"),"link":a[0].get_attribute("href")}
+                parts.append(part)
+
+    callback(parts)

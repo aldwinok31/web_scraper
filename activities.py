@@ -184,3 +184,39 @@ class HPMActivity():
             row += 1
 
         workbook.close()
+
+class CustServicePortal():
+    def __init__(self,url):
+        self.url = url
+
+    def start_driver(self):
+        self.driver = webdriver.Chrome('./chromedriver.exe')
+        self.driver.maximize_window()
+        self.driver.get(self.url)
+        self.start()
+
+    def start(self):
+        set_login_site(self.driver,self,self.get_missing_link)
+
+    def get_missing_link(self,pages):
+        process_missing_links(self.driver,self,pages,self.print_to_excel)
+
+    def scroll_to(self,el):
+        self.driver.execute_script("arguments[0].scrollIntoView();",el)
+
+    def print_to_excel(self,parts):
+        workbook = xlsxwriter.Workbook("Parts With No Image.xlsx")
+        worksheet = workbook.add_worksheet("Comp")
+        row = 0
+        col = 0
+
+        worksheet.write(row,col,"Name")
+        worksheet.write(row,col + 1,"Link")
+        row +=1
+
+        for i in parts:
+            worksheet.write(row,col,i['name'])
+            worksheet.write(row,col+1,i['link'])
+            row += 1
+
+        workbook.close()
