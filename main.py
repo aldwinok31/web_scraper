@@ -2,9 +2,10 @@ from activities import *
 
 def main():
     #activity = LVMActivity("https://www.lasvegasmarket.com/Market%20Map/")
-    #activity.start_driver()
 
-    activity = CustServicePortal("http://localhost:8080/troubleshoot/")
+    activity = CustServicePortal("https://customaticparts.com/servicePortal/")
+
+    #activity = HPMActivity("https://www.highpointmarket.org/exhibitor")
     activity.start_driver()
 
 

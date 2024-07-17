@@ -9,7 +9,7 @@ import time
 
 #### FOR LAS VEGAS MARKET
 def searchElement(driver,callback):
-    WebDriverWait(driver,3).until(EC.presence_of_element_located((By.CLASS_NAME,"imc-campus-view--floor-name")))
+    WebDriverWait(driver,5).until(EC.presence_of_element_located((By.CLASS_NAME,"imc-campus-view--floor-name")))
 
     a = driver.find_elements_by_class_name("imc-campus-view--floor-name")
     _filtered_array = []
@@ -27,6 +27,8 @@ def searchElement(driver,callback):
 def getHrefs(driver,callback,context):
     try:
         WebDriverWait(driver,20).until(EC.presence_of_element_located((By.CLASS_NAME,"imc-type--title-5-link")))
+        #buffer
+        time.sleep(5)
         a = driver.find_elements(By.CLASS_NAME,"imc-type--title-5-link")
         _filtered_array = []
         count = 0
@@ -101,7 +103,7 @@ def view_link(array_href,context,driver):
                 #texts = contact_dialog[0].find_elements(By.CLASS_NAME,"imc-type--title-3-ui")
                 #print(texts)
 
-                texts = contact_dialog[1].find_elements(By.CLASS_NAME,"imc-type--title-3-ui");
+                texts = contact_dialog[1].find_elements(By.CLASS_NAME,"imc-type--title-3-ui")
                 contact =  ""
                 for i in texts:
                     if(i.get_attribute("innerText") == "Phone"):
@@ -136,13 +138,44 @@ def view_link(array_href,context,driver):
 
 ###### FOR HIGH POINT MARKET
 def get_HPM_links(driver,context,callback):
-    href_data = []
-    href_data += set_adjustable(driver,context)
-    context.back()
-    href_data += set_mattresses(driver,context,href_data)
-    callback(href_data)
+    context.href_data = []
+    #href_data += set_adjustable(driver,context)
+    #context.back()
+    #href_data += set_mattresses(driver,context,href_data)
+    driver.get("https://www.highpointmarket.org/exhibitordirectory?filters=%7B%22Type%22%3A%22Categories%22%2C%22Values%22%3A%5B%22Bedroom+Furniture%22%2C%22Adjustable+beds%22%5D%7D")
+    getHPMexhibLinks(driver,context)
+    callback(context.href_data)
 
     #cat4[0].click()
+def getHPMexhibLinks(driver,context):
+    #filtered Link
+    WebDriverWait(driver,20).until(EC.presence_of_element_located((By.CLASS_NAME,"exhibitor")))
+
+    exhibitors = driver.find_elements(By.CLASS_NAME,"exhibitor")
+    for exhibitor in exhibitors:
+        context.scroll_to(exhibitor)
+        path = exhibitor.find_elements(By.XPATH,".//div/a")
+        link = path[0].get_attribute("href")
+        exhibitor_detail = exhibitor.find_elements(By.CLASS_NAME,"exhibitor-detail")
+        name_element = exhibitor_detail[0].find_elements(By.XPATH,".//h2/a")
+        name = name_element[0].get_attribute("innerText")
+
+        context.href_data.append({"link":link,"text":name,'categories':'Adjustable Bed'})
+        pass
+    try:
+        next = WebDriverWait(driver,3).until(EC.presence_of_element_located((By.CLASS_NAME,"next")))
+        if(next.get_attribute("class") != "next "):
+            return
+
+        next_click = next.find_elements(By.CLASS_NAME,"sr-only")
+        time.sleep(3)
+        driver.execute_script("arguments[0].click();",next_click[0])
+        #next_click[0].click()
+        time.sleep(1)
+        getHPMexhibLinks(driver,context)
+    except Exception as e:
+        print(e)
+        pass
 
 def set_mattresses(driver,context,adj_data):
     WebDriverWait(driver,20).until(EC.presence_of_element_located((By.CLASS_NAME,"cd-dropdown-trigger")))
@@ -207,9 +240,11 @@ def set_adjustable(driver,context):
     time.sleep(1)
     categories2[3].click()
 
-    categories3 = categories2[3].find_elements(By.XPATH,"//ul[@class='innerlist']/li")
+    categories3 = categories2[3].find_elements(By.XPATH,".//ul[@class='innerlist']/li")
 
-    cat4 = categories3[2].find_elements(By.CLASS_NAME,"filterLink.c")
+    time.sleep(5)
+    print(categories3)
+    cat4 = categories3[2].find_elements(By.CLASS_NAME,"filterLink")
     WebDriverWait(driver,10).until(EC.element_to_be_clickable(cat4[0]))
     #WebDriverWait(driver,10).until(EC.presence_of_element_located(cat4[0]))
     time.sleep(5)
@@ -232,37 +267,37 @@ def filter_HPM(driver,context,_arr):
     newarr = []
     for i in _arr:
         driver.get(i['link'])
-        WebDriverWait(driver,20).until(EC.presence_of_element_located((By.CLASS_NAME,"exh-info")))
+        WebDriverWait(driver,20).until(EC.presence_of_element_located((By.CLASS_NAME,"exhibitor-contain")))
         time.sleep(1)
+        content_holder = driver.find_elements(By.CLASS_NAME,"exhibitor-contain")
+        info_block = driver.find_elements(By.CLASS_NAME,"info-block")
 
-        con1 = driver.find_element_by_id("ctl00_ContentPlaceHolder1_lblLocation")
-        con2 = driver.find_element_by_id("ctl00_ContentPlaceHolder1_lblBusStop")
-        con3 = driver.find_element_by_id("ctl00_ContentPlaceHolder1_lblNeighborhood")
-        con4 = driver.find_element_by_id("ctl00_ContentPlaceHolder1_lblCorpPhone")
-        web = driver.find_element_by_id("ctl00_ContentPlaceHolder1_lnkWebsite")
+        info_text = info_block[0].find_elements(By.XPATH,".//p")
 
-        contact =""
-        contact += con1.get_attribute("innerText")
-        contact += "\n"
-        contact += con2.get_attribute("innerText")
-        contact += "\n"
-        contact += con3.get_attribute("innerText")
-        contact += "\n"
-        contact += con4.get_attribute("innerText")
+        name_block = content_holder[0].find_elements(By.XPATH,".//h1")
 
-        weblink = web.get_attribute("href")
-        categories = i['categories']
-        about = ""
+        about_block = content_holder[0].find_elements(By.XPATH,"//*[@id='whoweare']/div/div/p")
+
+        name = name_block[0].get_attribute("innerText")
+        contact = info_text[0].get_attribute("innerText")
+        about = "No content"
+        weblink = "No link"
         try:
-            WebDriverWait(driver,20).until(EC.presence_of_element_located((By.ID,"ctl00_ContentPlaceHolder1_lblDescription")))
-            about = driver.find_element_by_id("ctl00_ContentPlaceHolder1_lblDescription").get_attribute("innerText")
-        except TimeoutException:
-            about = "NONE"
+            about = about_block[0].get_attribute("innerText")
+            pass
+        except Exception as e:
+            pass
 
-        new_data = {"Name":i['text'],"MarketLink":i["link"],"body":about,"categories":categories,"website":weblink,"contact":contact}
+        try:
+            weblink = info_text[1].get_attribute("innerText")
+            pass
+        except Exception as e:
+            pass
+
+        new_data = {"Name":i['text'],"MarketLink":i["link"],"body":about,"categories":"Adjustable Bed","website":weblink,"contact":contact}
         newarr.append(new_data)
-        context.back()
         time.sleep(2)
+
 
     return newarr
 
@@ -288,8 +323,9 @@ def set_login_site(driver,context,callback):
 
 def find_all_page_href(driver,context):
     # Get All pagination hrefs into array
-    driver.get("http://localhost:8080/troubleshoot/servicePages/index.php?x=0&y=0&search=&show=0&page=1")
-    time.sleep(2)
+    assy = "1"
+    driver.get("https://customaticparts.com/servicePortal/servicePages/index.php?x=0&y=0&search=&show=" + assy + "&page=1")
+    time.sleep(5)
 
     page_array = driver.find_elements(By.CLASS_NAME,"pagination")
     pages = []
@@ -306,7 +342,7 @@ def process_missing_links(driver,context,pages,callback):
         driver.get(page)
         WebDriverWait(driver,20).until(EC.presence_of_element_located((By.CLASS_NAME,"c-image")))
 
-        imagenotavail = 'http://localhost:8080/troubleshoot/images/imagenotavailable.png'
+        imagenotavail = 'https://customaticparts.com/servicePortal/images/imagenotavailable.png'
         time.sleep(3)
         imagesrc = driver.find_elements(By.CLASS_NAME,"c-image")
 
