@@ -26,7 +26,7 @@ class LVMActivity:
         pass
 
     def start(self):
-        searchElement(self.driver,self.callback_filteredArray)
+        searchElement(self.driver,self.callback_filteredArray,self)
 
     def callback_filteredArray(self,array):
         self.array_of_elements = array

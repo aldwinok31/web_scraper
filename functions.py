@@ -8,18 +8,35 @@ from selenium.webdriver.common.keys import Keys
 import time
 
 #### FOR LAS VEGAS MARKET
-def searchElement(driver,callback):
-    WebDriverWait(driver,5).until(EC.presence_of_element_located((By.CLASS_NAME,"imc-campus-view--floor-name")))
+def searchElement(driver,callback,context):
+    WebDriverWait(driver,10).until(EC.presence_of_element_located((By.CLASS_NAME,"imc-campus-view--floor-name")))
 
-    a = driver.find_elements_by_class_name("imc-campus-view--floor-name")
+    #select by ID
+    try:
+       WebDriverWait(driver,10).until(EC.presence_of_element_located((By.ID,"gdpr-btn")))
+
+       cookieBanner = driver.find_element_by_id("gdpr-btn")
+
+       cookieBanner.click()
+       pass
+    except:
+        pass
+
+    a = driver.find_elements_by_class_name("imc-campus-view-link")
+
     _filtered_array = []
-    #print(a)
+    time.sleep(2)
+    count = 0
     for element in a:
-        _el = element.find_elements(By.CLASS_NAME,"imc-campus-view-link")[0]
-        #or _el.get_attribute('innerText') == "Furniture | Bedding"
-        #_el.get_attribute('innerText') == "Bedding"
-        if(_el.get_attribute('innerText') == "Bedding"  or _el.get_attribute('innerText') == "Furniture | Bedding" ):
-            _filtered_array.append(_el)
+       _el = element
+       try:
+           _el = driver.find_elements_by_class_name("imc-campus-view-link")[count]
+           count = count + 1
+           if(_el.get_attribute('innerText') == "Bedding"  or _el.get_attribute('innerText') == "Furniture / Bedding" ):
+               _filtered_array.append(_el)
+           pass
+       except:
+           pass
 
     callback(_filtered_array)
 
@@ -94,16 +111,22 @@ def view_link(array_href,context,driver):
                 site_link = "Link not available"
 
             try:
+               
+                heading = driver.find_elements(By.CLASS_NAME,"imc-heading--giga-desktop")
                 contact_button = driver.find_elements(By.CLASS_NAME,"imc-button--contact-exhibitor")
+                context.scroll_to(heading[0])
+                time.sleep(2)
                 contact_button[0].click()
+
                 WebDriverWait(driver,5).until(EC.presence_of_element_located((By.CLASS_NAME,"imc-contactexhibitormodal--body-panel")))
+                time.sleep(3)
 
                 contact_dialog = driver.find_elements(By.CLASS_NAME,"imc-contactexhibitormodal--body-panel")
 
                 #texts = contact_dialog[0].find_elements(By.CLASS_NAME,"imc-type--title-3-ui")
                 #print(texts)
 
-                texts = contact_dialog[1].find_elements(By.CLASS_NAME,"imc-type--title-3-ui")
+                texts = contact_dialog[0].find_elements(By.CLASS_NAME,"imc-type--title-3-ui")
                 contact =  ""
                 for i in texts:
                     if(i.get_attribute("innerText") == "Phone"):
@@ -117,13 +140,8 @@ def view_link(array_href,context,driver):
                         contact += " \n"
 
 
-            except TimeoutException:
+            except:
                 contact = "No Contact"
-
-
-
-
-
 
             #if len(driver.find_elements(By.CLASS_NAME,"imc-button--primary-inverted")) > 0:
             new_data = {"Name":_arr['text'],"MarketLink":_arr["link"],"body":body,"categories":categories,"website":site_link,"contact":contact}
@@ -306,8 +324,9 @@ def filter_HPM(driver,context,_arr):
 
 def set_login_site(driver,context,callback):
     #Set Credentials for customatic parts
-    user = "Aldwin"
-    passw = "CodeMonkey1!"
+    #confidential
+    user = "secret"
+    passw = "secret"
 
     #Find User and Password Input
     username = driver.find_element_by_id("user")
